@@ -1,5 +1,5 @@
 import type { Trip } from "@/types/trip";
-import { formatTime } from "../utils/formatTime";
+import { formatTime } from "../../utils/formatTime";
 
 type Props = {
   route: Trip["route"];
@@ -10,7 +10,7 @@ export const StopList = ({ route }: Props) => {
 
   const findNextStopIndex = () => {
     return route.findIndex((stop) => {
-      const est = new Date(stop.arrival.estimated || stop.arrival.scheduled);
+      const est = new Date(stop.arrival.estimated ?? stop.arrival.scheduled);
       return est > now && !stop.skipped;
     });
   };
@@ -27,11 +27,14 @@ export const StopList = ({ route }: Props) => {
         const isLast = i === route.length - 1;
 
         const scheduled = new Date(stop.arrival.scheduled);
-        const estimated = new Date(
-          stop.arrival.estimated || stop.arrival.scheduled
-        );
-        const isDelayed = estimated > scheduled;
-        const delayMinutes = Math.round((+estimated - +scheduled) / 60000);
+        const estimated = stop.arrival.estimated
+          ? new Date(stop.arrival.estimated)
+          : null;
+
+        const isDelayed = estimated ? estimated > scheduled : false;
+        const delayMinutes = estimated
+          ? Math.round((+estimated - +scheduled) / 60000)
+          : 0;
 
         return (
           <li
@@ -80,7 +83,7 @@ export const StopList = ({ route }: Props) => {
               <div style={{ fontSize: "0.875rem", color: "#555" }}>
                 {formatTime(scheduled)} →{" "}
                 <span style={{ color: isDelayed ? "#d00" : "#555" }}>
-                  {formatTime(estimated)}
+                  {formatTime(estimated || scheduled)}
                   {isDelayed && (
                     <span style={{ marginLeft: 6, fontSize: "0.75rem" }}>
                       (+{delayMinutes} min)
