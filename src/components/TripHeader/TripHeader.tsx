@@ -1,4 +1,5 @@
 import { formatTime } from "../../utils/formatTime";
+import styles from "./styles.module.css";
 
 interface TripHeaderProps {
   lastUpdated?: string;
@@ -6,10 +7,10 @@ interface TripHeaderProps {
 
 export const TripHeader = ({ lastUpdated }: TripHeaderProps) => {
   return (
-    <header style={{ padding: "1rem", borderBottom: "1px solid #ccc" }}>
-      <h1 style={{ fontSize: "1.25rem", marginBottom: "0.5rem" }}>Trip Info</h1>
+    <header className={styles.container}>
+      <h1 className={styles.title}>Trip Info</h1>
       {lastUpdated && (
-        <p style={{ fontSize: "0.875rem", color: "#555" }}>
+        <p className={styles.updated}>
           Last updated: {formatTime(lastUpdated)}
         </p>
       )}
