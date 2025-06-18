@@ -1,5 +1,6 @@
 import type { Trip } from "@/types/trip";
 import { formatTime } from "../../utils/formatTime";
+import styles from "./styles.module.css";
 
 type Props = {
   route: Trip["route"];
@@ -8,20 +9,16 @@ type Props = {
 export const StopList = ({ route }: Props) => {
   const now = new Date();
 
-  const findNextStopIndex = () => {
-    return route.findIndex((stop) => {
+  const findNextStopIndex = () =>
+    route.findIndex((stop) => {
       const est = new Date(stop.arrival.estimated ?? stop.arrival.scheduled);
       return est > now && !stop.skipped;
     });
-  };
 
   const nextIndex = findNextStopIndex();
 
-  const dotColor = "#ccc";
-  const lineColor = "#ccc";
-
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+    <ul className={styles.list}>
       {route.map((stop, i) => {
         const isNext = i === nextIndex;
         const isLast = i === route.length - 1;
@@ -39,55 +36,23 @@ export const StopList = ({ route }: Props) => {
         return (
           <li
             key={stop.id}
-            style={{
-              position: "relative",
-              paddingLeft: "3.25rem",
-              paddingBottom: isLast ? 0 : "2rem",
-            }}
+            className={styles.item}
+            style={{ paddingBottom: isLast ? 0 : "2rem" }}
           >
-            {/* vertical line */}
-            {!isLast && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: "1.25rem",
-                  left: "1.375rem",
-                  width: "2px",
-                  height: "calc(100% - 1.25rem)",
-                  backgroundColor: lineColor,
-                }}
-              />
-            )}
+            {!isLast && <span className={styles.line} />}
+            <span className={styles.dot} />
 
-            {/* dot */}
-            <span
-              style={{
-                position: "absolute",
-                top: 0,
-                left: "0.75rem",
-                width: "1.25rem",
-                height: "1.25rem",
-                borderRadius: "50%",
-                backgroundColor: dotColor,
-                border: "2px solid white",
-                boxShadow: `0 0 0 1px ${dotColor}`,
-              }}
-            />
-
-            {/* content */}
             <div>
-              {isNext && <small style={{ color: "#999" }}>Next stop</small>}
-              <div style={{ fontWeight: isNext ? "bold" : "normal" }}>
+              {isNext && <small className={styles.next}>Next stop</small>}
+              <div className={isNext ? styles.nameBold : styles.name}>
                 {stop.location.name}
               </div>
-              <div style={{ fontSize: "0.875rem", color: "#555" }}>
+              <div className={styles.time}>
                 {formatTime(scheduled)} →{" "}
                 <span style={{ color: isDelayed ? "#d00" : "#555" }}>
                   {formatTime(estimated || scheduled)}
                   {isDelayed && (
-                    <span style={{ marginLeft: 6, fontSize: "0.75rem" }}>
-                      (+{delayMinutes} min)
-                    </span>
+                    <span className={styles.delay}> (+{delayMinutes} min)</span>
                   )}
                 </span>
               </div>
