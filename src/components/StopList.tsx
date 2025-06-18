@@ -1,4 +1,5 @@
 import type { Trip } from "@/types/trip";
+import { formatTime } from "../utils/formatTime";
 
 type Props = {
   route: Trip["route"];
@@ -70,7 +71,8 @@ export const StopList = ({ route }: Props) => {
                 {stop.location.name}
               </div>
               <div style={{ fontSize: "0.875rem", color: "#555" }}>
-                {stop.arrival.scheduled} → {stop.arrival.estimated}
+                {formatTime(stop.arrival.scheduled)} →{" "}
+                {formatTime(stop.arrival.estimated)}
               </div>
             </div>
           </li>

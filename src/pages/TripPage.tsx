@@ -8,6 +8,7 @@ import {
 import { useTripData } from "../hooks/useTripData";
 import { StopList } from "../components/StopList";
 import L from "leaflet";
+import { formatTime } from "../utils/formatTime"; // <- moved here
 
 export const TripPage = () => {
   const { trip, gps, loading, error } = useTripData();
@@ -28,7 +29,7 @@ export const TripPage = () => {
         </h1>
         {gps && (
           <p style={{ fontSize: "0.875rem", color: "#555" }}>
-            Last updated: {gps.last_updated}
+            Last updated: {formatTime(gps.last_updated)}
           </p>
         )}
       </header>
