@@ -3,6 +3,28 @@ export interface TripResponse {
   vehicle: Vehicle;
 }
 
+export interface Trip {
+  id: string;
+  route: {
+    id: number;
+    arrival: {
+      scheduled: string;
+      estimated: string;
+    };
+    location: {
+      name: string;
+    };
+    skipped: boolean;
+  }[];
+  vehicle?: {
+    gps: {
+      latitude: number;
+      longitude: number;
+      last_updated: string;
+    };
+  };
+}
+
 export interface LocationTime {
   id: number;
   arrival: TimeInfo;
