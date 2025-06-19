@@ -1,14 +1,27 @@
+// jest.config.mjs
+import { readFileSync } from "fs";
+import { pathsToModuleNameMapper } from "ts-jest";
+import { parse } from "jsonc-parser";
+
+const tsconfig = parse(readFileSync("./tsconfig.json", "utf8"));
+
 export default {
+  preset: "ts-jest/presets/default-esm",
   testEnvironment: "jsdom",
-  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
-
-  transform: {},
-  moduleNameMapper: {
-    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
-    "^@/(.*)$": "<rootDir>/src/$1",
-  },
-
   extensionsToTreatAsEsm: [".ts", ".tsx"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
-  preset: "ts-jest/presets/js-with-ts-esm",
+  globals: {
+    "ts-jest": {
+      useESM: true,
+    },
+  },
+  setupFilesAfterEnv: ["<rootDir>/config/setupGlobals.ts"],
+  moduleNameMapper: {
+    ...pathsToModuleNameMapper(tsconfig.compilerOptions?.paths || {}, {
+      prefix: "<rootDir>/",
+    }),
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+  },
+  transform: {
+    "^.+\\.tsx?$": ["ts-jest", { useESM: true }],
+  },
 };
