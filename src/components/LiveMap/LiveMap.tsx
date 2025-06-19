@@ -5,8 +5,8 @@ import {
   Popup,
   TileLayer,
 } from "react-leaflet";
-import L from "leaflet";
 import type { LocationTime, Vehicle } from "@/types/trip";
+import { createStopDotIcon } from "../../utils/createStopDotIcon";
 import { createBusIcon } from "../../utils/createBusIcon";
 
 type Props = {
@@ -46,7 +46,11 @@ export const LiveMap = ({ gps, route }: Props) => {
       )}
 
       {route.map((stop) => (
-        <Marker key={stop.id} position={[stop.location.lat, stop.location.lon]}>
+        <Marker
+          key={stop.id}
+          position={[stop.location.lat, stop.location.lon]}
+          icon={createStopDotIcon()}
+        >
           <Popup>{stop.location.name}</Popup>
         </Marker>
       ))}
