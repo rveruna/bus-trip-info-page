@@ -9,7 +9,7 @@ The page shows:
 - Highlighting of the **next stop** based on live data
 - Graceful handling of missing or outdated GPS data
 
-The goal is to create a sharable, real-time view that could be sent via SMS to a passenger, providing meaningful trip info in a simple interface.
+The goal is to create a shareable, real-time view that could be sent via SMS to a passenger, providing meaningful trip info in a simple interface.
 
 ---
 
