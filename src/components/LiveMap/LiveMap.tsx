@@ -7,6 +7,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import type { LocationTime, Vehicle } from "@/types/trip";
+import { createBusIcon } from "../../utils/createBusIcon";
 
 type Props = {
   gps: Vehicle["gps"] | null;
@@ -37,14 +38,10 @@ export const LiveMap = ({ gps, route }: Props) => {
       {gps && (
         <Marker
           position={[gps.latitude, gps.longitude]}
-          icon={L.divIcon({
-            className: "bus-icon",
-            html: "🚌",
-            iconSize: [24, 24],
-            iconAnchor: [12, 12],
-          })}
+          icon={createBusIcon(gps.heading)}
+          zIndexOffset={1000}
         >
-          <Popup>Bus position</Popup>
+          <Popup>Bus is here</Popup>
         </Marker>
       )}
 
