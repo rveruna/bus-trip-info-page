@@ -1,4 +1,3 @@
-import { jest } from "@jest/globals";
 import { renderHook } from "@testing-library/react";
 import { waitFor } from "@testing-library/react";
 import { useTripData } from "../useTripData";
