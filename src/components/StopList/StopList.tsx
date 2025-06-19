@@ -1,4 +1,4 @@
-import type { Trip } from "@/types/trip";
+import type { Trip } from "../../types/trip";
 import { formatTime } from "../../utils/formatTime";
 import styles from "./styles.module.css";
 
