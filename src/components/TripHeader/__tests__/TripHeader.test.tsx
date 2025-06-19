@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
 import { TripHeader } from "../TripHeader";
+import { formatTime } from "@/utils/formatTime";
 
 describe("TripHeader", () => {
   it("renders the title", () => {
@@ -8,10 +9,11 @@ describe("TripHeader", () => {
   });
 
   it("shows last updated time when provided", () => {
-    const { getByText } = render(
-      <TripHeader lastUpdated="2024-06-19T13:45:00Z" />
-    );
-    expect(getByText(/last updated: 13:45/i)).toBeTruthy();
+    const input = "2024-06-19T13:45:00Z";
+    const ukTime = formatTime(input);
+
+    const { getByText } = render(<TripHeader lastUpdated={input} />);
+    expect(getByText(new RegExp(`last updated: ${ukTime}`, "i"))).toBeTruthy();
   });
 
   it("does not show last updated when prop is missing", () => {
