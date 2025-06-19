@@ -16,7 +16,8 @@
       "@/*": ["src/*"]
     },
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["jest"]
   },
   "include": ["src", "src/types"]
 }
