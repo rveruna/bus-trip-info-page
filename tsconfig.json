@@ -11,6 +11,8 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
