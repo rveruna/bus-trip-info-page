@@ -181,6 +181,23 @@ describe('TripPage (integration)', () => {
     });
   });
 
+  test('lists a through-service’s stops from where the journey gets on, matching its departure time', async () => {
+    const through = makeTrip(
+      [
+        makeStop(7, 'Aberdeen Depot', -150, { actual: new Date().toISOString() }),
+        makeStop(8, 'Dundee Slessor Gardens', -20, { actual: new Date().toISOString() }),
+        makeStop(9, 'Edinburgh George Street', 60),
+      ],
+      { latitude: 56.2, longitude: -3.2 },
+    );
+    mockApi({ places, quotes: [makeQuote('through', -20, 80, { from: 8, to: 9 })], trips: { through } });
+    render(<TripPage />);
+
+    expect(await screen.findByText('Dundee Slessor Gardens', { selector: 'div' })).toBeTruthy();
+    expect(screen.queryByText('Aberdeen Depot', { selector: 'div' })).toBeNull();
+    expect(document.querySelector('.stop-dot-icon[title="Aberdeen Depot"]')).toBeNull();
+  });
+
   describe('a bus that has stopped reporting its position', () => {
     const quiet = makeTrip([makeStop(5, 'Frozen Stop', 20)], { latitude: 56.3, longitude: -3.3 }, 90);
 

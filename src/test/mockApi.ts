@@ -3,10 +3,17 @@ import type { LocationTime, Place, Quote } from '@/types/trip';
 const minutes = (offset: number) => new Date(Date.now() + offset * 60000).toISOString();
 
 /** A quote for a trip that departs `departsIn` minutes from now (negative: already left) and takes `duration`. */
-export const makeQuote = (uid: string, departsIn: number, duration = 120): Quote => ({
+export const makeQuote = (
+  uid: string,
+  departsIn: number,
+  duration = 120,
+  /** The stop ids where the journey gets on and off, when the trip runs further than the journey. */
+  journey?: { from: number; to: number },
+): Quote => ({
   legs: [
     {
       trip_uid: uid,
+      ...(journey && { origin: { id: journey.from }, destination: { id: journey.to } }),
       departure: { scheduled: minutes(departsIn) },
       arrival: { scheduled: minutes(departsIn + duration) },
     },

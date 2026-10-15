@@ -29,3 +29,18 @@ export function describeDelay(minutes: number | null): string {
   if (minutes <= -1) return `${-minutes} min early`;
   return 'on time';
 }
+
+/**
+ * The part of a trip's route between where the journey gets on and off. A through-service from Aberdeen to
+ * Edinburgh, followed from Dundee, starts its list at Dundee. Falls back to the whole route when either stop is
+ * missing from it.
+ */
+export function journeyStops<T extends { location: { id: number } }>(
+  route: T[],
+  originStopId?: number,
+  destinationStopId?: number,
+): T[] {
+  const from = route.findIndex((stop) => stop.location.id === originStopId);
+  const to = route.findIndex((stop) => stop.location.id === destinationStopId);
+  return from === -1 || to === -1 || to < from ? route : route.slice(from, to + 1);
+}

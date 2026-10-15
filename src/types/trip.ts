@@ -66,6 +66,8 @@ export interface Quote {
   legs?:
     | {
         trip_uid?: string;
+        origin?: { id?: number };
+        destination?: { id?: number };
         departure?: { scheduled?: string };
         arrival?: { scheduled?: string };
       }[]
@@ -79,6 +81,9 @@ export interface TripRef {
   arrival: string;
   /** False when no bus is running yet and this is just the next departure. */
   inProgress: boolean;
+  /** Where the chosen journey gets on and off this trip, which may run further at either end. */
+  originStopId?: number;
+  destinationStopId?: number;
 }
 
 export interface LiveTrip extends TripRef {

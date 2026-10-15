@@ -15,7 +15,7 @@ A mobile-friendly page for following bus journeys: a live map with every running
 
 - Every bus running on the route shown on a Leaflet map, each in its own colour, gliding along the route as new positions arrive
 - Choose the route (from, to and a swap button); it is kept in the address, for example `?from=80&to=452` for Glasgow to Inverness
-- Pick a bus from the map or the list to see its stops, with scheduled and estimated times, and the delay in minutes where it is running late
+- Pick a bus from the map or the list to see the stops of your journey (a bus from Aberdeen followed from Dundee lists Dundee onwards), with scheduled and estimated times, and the delay in minutes where it is running late
 - A "View on a phone" button (wide screens only) shows the page in a phone-shaped frame, as a visitor on a phone would see it; see [the decision record](docs/decisions/0005-phone-view-is-a-frame-of-the-same-page.md)
 - Stops the bus has passed are dimmed, and the next stop is highlighted
 - Data refreshes every 15 seconds
@@ -50,11 +50,11 @@ node perf/lighthouse.mjs   # Lighthouse in real Chrome
 
 ## What checking it found
 
-Lighthouse scored the page 95 for accessibility and 83 for SEO. The map's bus and stop markers were focusable buttons with no accessible name, the page had no `main` landmark, and it still had the default title, no description and no valid `robots.txt`. All fixed: accessibility and SEO are now 100, and the fixes have tests that fail if they are undone.
+Lighthouse scored the page 95 for accessibility and 83 for SEO. The map's bus and stop markers were focusable buttons with no accessible name, the page had no `main` landmark, and it still had the default title, no description and no valid `robots.txt`. All fixed: accessibility and SEO are now 100, and the fixes have tests that fail if they are undone. Later, best practices scored 96 because the map tiles were blurred on high-density phone screens; Leaflet's `detectRetina` now loads sharper tiles there, and it is 100.
 
 ## Tests
 
-114 tests in 17 suites cover the API client, the hooks, the page, the route picker, the bus list, the map marker animation, the phone view, the stop list and the utilities, with over 99% statement coverage. The bug that started this rewrite, following a bus that had not left yet, has a test that fails if it comes back. Four of them check accessibility: the main landmark, the status and alert announcements, the names of the bus markers, the stop markers staying out of the tab order and the labels of the route pickers. They use Jest and React Testing Library, with one fake of the three API endpoints (`src/test/mockApi.ts`).
+121 tests in 17 suites cover the API client, the hooks, the page, the route picker, the bus list, the map marker animation, the phone view, the stop list and the utilities, with over 99% statement coverage. The bug that started this rewrite, following a bus that had not left yet, has a test that fails if it comes back. Four of them check accessibility: the main landmark, the status and alert announcements, the names of the bus markers, the stop markers staying out of the tab order and the labels of the route pickers. They use Jest and React Testing Library, with one fake of the three API endpoints (`src/test/mockApi.ts`).
 
 ## Limits and what I would improve
 
