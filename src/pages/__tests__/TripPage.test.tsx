@@ -181,6 +181,49 @@ describe('TripPage (integration)', () => {
     });
   });
 
+  describe('a bus that has stopped reporting its position', () => {
+    const quiet = makeTrip([makeStop(5, 'Frozen Stop', 20)], { latitude: 56.3, longitude: -3.3 }, 90);
+
+    const oneQuietOneLive = () =>
+      mockApi({
+        places,
+        quotes: [makeQuote('quiet', -90), makeQuote('two', -30)],
+        trips: { quiet, two: tripTwo },
+      });
+
+    test('is not drawn on the map, but is still listed with when it was last seen', async () => {
+      oneQuietOneLive();
+      render(<TripPage />);
+      await screen.findByText('Falkirk');
+
+      const map = screen.getByRole('region', { name: /live map/i });
+      expect(within(map).queryByRole('button', { name: /^Bus 1,/ })).toBeNull();
+      expect(within(map).getByRole('button', { name: /^Bus 2,/ })).toBeTruthy();
+
+      const list = screen.getByRole('list', { name: /buses on this route/i });
+      expect(within(list).getByRole('button', { name: /Bus 1/ }).textContent).toMatch(/no position since/);
+    });
+
+    test('is not the bus followed by default when another one is reporting', async () => {
+      oneQuietOneLive();
+      render(<TripPage />);
+
+      expect(await screen.findByText('Falkirk', { selector: 'div' })).toBeTruthy();
+      expect(screen.queryByText('Frozen Stop', { selector: 'div' })).toBeNull();
+    });
+
+    test('can still be chosen to read its stops', async () => {
+      oneQuietOneLive();
+      render(<TripPage />);
+      await screen.findByText('Falkirk');
+
+      const list = screen.getByRole('list', { name: /buses on this route/i });
+      fireEvent.click(within(list).getByRole('button', { name: /Bus 1/ }));
+
+      expect(await screen.findByText('Frozen Stop', { selector: 'div' })).toBeTruthy();
+    });
+  });
+
   describe('phone view', () => {
     test('is offered on the full screen page', async () => {
       twoBuses();
@@ -241,7 +284,7 @@ describe('TripPage (integration)', () => {
       mockApi({ places, quotes: [] });
       render(<TripPage />);
 
-      expect(await screen.findByText(/no buses run on this route/i)).toBeTruthy();
+      expect(await screen.findByText(/no bus is running on this route right now/i)).toBeTruthy();
     });
 
     test('renders an error message if the trips cannot be fetched', async () => {

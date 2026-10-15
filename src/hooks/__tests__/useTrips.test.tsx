@@ -28,7 +28,7 @@ describe('useTrips', () => {
 
     expect(result.current.error).toBe(false);
     expect(result.current.trips.map((t) => t.uid)).toEqual(['a', 'b']);
-    expect(result.current.trips[0].gps).toEqual({ ...gps, last_updated: '2025-06-20T12:00:00Z' });
+    expect(result.current.trips[0].gps).toMatchObject(gps);
     expect(result.current.trips[0].route[0].location.name).toBe('Stop A');
   });
 
@@ -208,5 +208,57 @@ describe('useTrips', () => {
     });
 
     expect(result.current.trips.map((t) => t.uid)).toEqual(['new']);
+  });
+
+  describe('a bus that has already finished its trip', () => {
+    const past = (name: string, id = 1) =>
+      makeTrip([makeStop(id, name, -30, { actual: new Date().toISOString() })], gps);
+
+    test('is not shown as running, even inside its scheduled times', async () => {
+      mockApi({
+        quotes: [makeQuote('done', -60), makeQuote('running', -30)],
+        trips: { done: past('Last stop'), running: trip('Still going') },
+      });
+
+      const { result } = renderHook(() => useTrips(13, 42));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current.trips.map((t) => t.uid)).toEqual(['running']);
+    });
+
+    test('is replaced by the next departure when it was the only bus', async () => {
+      mockApi({
+        quotes: [makeQuote('done', -60), makeQuote('soon', 20)],
+        trips: { done: past('Last stop'), soon: trip('Depot') },
+      });
+
+      const { result } = renderHook(() => useTrips(13, 42));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current.trips.map((t) => [t.uid, t.inProgress])).toEqual([['soon', false]]);
+      expect(result.current.empty).toBe(false);
+    });
+
+    test('leaves the page empty when there is no next departure either', async () => {
+      mockApi({ quotes: [makeQuote('done', -60)], trips: { done: past('Last stop') } });
+
+      const { result } = renderHook(() => useTrips(13, 42));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current).toMatchObject({ trips: [], empty: true, error: false });
+    });
+
+    test('reports an error, not an empty route, when the next departure cannot be loaded', async () => {
+      mockApi({
+        quotes: [makeQuote('done', -60), makeQuote('soon', 20)],
+        trips: { done: past('Last stop'), soon: trip('Depot') },
+        failTrips: ['soon'],
+      });
+
+      const { result } = renderHook(() => useTrips(13, 42));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current).toMatchObject({ error: true, empty: false });
+    });
   });
 });

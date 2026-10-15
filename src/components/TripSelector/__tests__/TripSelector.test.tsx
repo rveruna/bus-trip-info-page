@@ -10,7 +10,7 @@ const trip = (uid: string, over: Partial<LiveTrip> = {}): LiveTrip => ({
   departure: at(-60),
   arrival: at(60),
   inProgress: true,
-  gps: null,
+  gps: { latitude: 56, longitude: -3, last_updated: new Date().toISOString() },
   route: [makeStop(1, 'A', 20, { estimated: at(26) })],
   ...over,
 });
@@ -49,5 +49,25 @@ describe('TripSelector', () => {
     fireEvent.click(screen.getByRole('button', { name: /Bus 2/ }));
 
     expect(onSelect).toHaveBeenCalledWith('b');
+  });
+
+  it('says when a bus has stopped reporting its position, and since when', () => {
+    const lastSeen = at(-45);
+    render(
+      <TripSelector
+        trips={[trip('a', { gps: { latitude: 56, longitude: -3, last_updated: lastSeen } })]}
+        selectedUid="a"
+        onSelect={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole('button').textContent).toMatch(/no position since \d\d:\d\d/);
+    expect(screen.getByRole('button').textContent).not.toMatch(/late|early|on time/);
+  });
+
+  it('says so when a bus has no position at all', () => {
+    render(<TripSelector trips={[trip('a', { gps: null })]} selectedUid="a" onSelect={() => {}} />);
+
+    expect(screen.getByRole('button').textContent).toMatch(/no position/);
   });
 });

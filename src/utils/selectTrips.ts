@@ -4,11 +4,9 @@ export const MAX_BUSES = 6;
 
 const isValid = (date: Date) => !Number.isNaN(+date);
 
-/**
- * Picks the trips worth showing from a list of quotes: every trip that has left and not yet arrived, earliest
- * first. When nothing is running it falls back to the next departure, so the page still has something to show.
- */
-export function selectTrips(quotes: Quote[], now: Date, max = MAX_BUSES): TripRef[] {
+const byDeparture = (a: TripRef, b: TripRef) => +new Date(a.departure) - +new Date(b.departure);
+
+function toRefs(quotes: Quote[], now: Date): TripRef[] {
   const seen = new Set<string>();
   const refs: TripRef[] = [];
 
@@ -27,12 +25,26 @@ export function selectTrips(quotes: Quote[], now: Date, max = MAX_BUSES): TripRe
       inProgress: new Date(departure) <= now && now <= new Date(arrival),
     });
   }
+  return refs;
+}
 
-  const byDeparture = (a: TripRef, b: TripRef) => +new Date(a.departure) - +new Date(b.departure);
+/** The earliest trip that has not left yet, if any. */
+export function nextDeparture(quotes: Quote[], now: Date): TripRef | undefined {
+  return toRefs(quotes, now)
+    .filter((ref) => new Date(ref.departure) > now)
+    .sort(byDeparture)[0];
+}
 
-  const running = refs.filter((ref) => ref.inProgress).sort(byDeparture);
+/**
+ * Picks the trips worth showing from a list of quotes: every trip that has left and not yet arrived, earliest
+ * first. When nothing is running it falls back to the next departure, so the page still has something to show.
+ */
+export function selectTrips(quotes: Quote[], now: Date, max = MAX_BUSES): TripRef[] {
+  const running = toRefs(quotes, now)
+    .filter((ref) => ref.inProgress)
+    .sort(byDeparture);
   if (running.length > 0) return running.slice(0, max);
 
-  const next = refs.filter((ref) => new Date(ref.departure) > now).sort(byDeparture)[0];
+  const next = nextDeparture(quotes, now);
   return next ? [next] : [];
 }
