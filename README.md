@@ -5,6 +5,10 @@
 
 **[Live demo](https://rveruna.github.io/bus-trip-info-page/)**, showing the buses running on a route right now.
 
+<img src="docs/demo.gif" width="320" alt="The live demo in its phone view: every bus running from Dundee to Edinburgh on the map, then zoomed in on one bus as it moves through Edinburgh.">
+
+*Recorded from the live demo on 15 October 2026 with headless Chrome: about 2.5 minutes of real bus positions, sped up about 25 times.*
+
 A mobile-friendly page for following bus journeys: a live map with every running bus on a route, every stop of the bus you pick with its scheduled and estimated arrival time, the next stop highlighted, and how late each bus is running. Built with React, TypeScript and Leaflet.
 
 ## What it does
