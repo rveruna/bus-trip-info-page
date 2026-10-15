@@ -80,4 +80,53 @@ describe('TripPage (integration)', () => {
       expect(screen.getByText(/something went wrong/i)).toBeTruthy();
     });
   });
+
+  describe('accessibility', () => {
+    const stubFetch = (tripResponse: unknown, tripOk = true) => {
+      global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+      (global.fetch as jest.MockedFunction<typeof fetch>)
+        .mockResolvedValueOnce({ ok: true, json: async () => mockQuotesResponse } as Response)
+        .mockResolvedValueOnce({ ok: tripOk, json: async () => tripResponse } as Response);
+    };
+
+    test('has a main landmark and announces loading as a status', async () => {
+      stubFetch(mockTripResponse);
+      render(<TripPage />);
+
+      expect(screen.getByRole('main')).toBeTruthy();
+      expect(screen.getByRole('status').textContent).toMatch(/loading trip/i);
+
+      await waitFor(() => expect(screen.getByText(/first stop/i)).toBeTruthy());
+    });
+
+    test('keeps the main landmark once the trip has loaded', async () => {
+      stubFetch(mockTripResponse);
+      render(<TripPage />);
+
+      await waitFor(() => expect(screen.getByText(/first stop/i)).toBeTruthy());
+
+      expect(screen.getByRole('main')).toBeTruthy();
+    });
+
+    test('announces a failure as an alert inside the main landmark', async () => {
+      stubFetch({}, false);
+      render(<TripPage />);
+
+      const alert = await screen.findByRole('alert');
+
+      expect(alert.textContent).toMatch(/something went wrong/i);
+      expect(screen.getByRole('main').contains(alert)).toBe(true);
+    });
+
+    test('gives the map markers accessible names', async () => {
+      stubFetch(mockTripResponse);
+      render(<TripPage />);
+
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: 'First Stop' }).length).toBeGreaterThan(0),
+      );
+
+      expect(screen.getAllByRole('button', { name: 'Bus position' }).length).toBeGreaterThan(0);
+    });
+  });
 });
