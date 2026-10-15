@@ -1,132 +1,266 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { TripPage } from '../TripPage';
+import { makePlace, makeQuote, makeStop, makeTrip, mockApi } from '../../test/mockApi';
 
-const mockQuotesResponse = {
-  quotes: [
-    {
-      legs: [
-        {
-          trip_uid: 'abc123',
-          departure: { scheduled: new Date(Date.now() + 100000).toISOString() },
-        },
-      ],
-    },
-  ],
+/** Chooses the option with this visible text, as a person would in the select. */
+const selectOption = (select: HTMLElement, text: string) => {
+  const option = Array.from((select as HTMLSelectElement).options).find((o) => o.text === text)!;
+  fireEvent.change(select, { target: { value: option.value } });
 };
 
-const mockTripResponse = {
-  route: [
-    {
-      id: 'stop1',
-      location: { name: 'First Stop', lat: 1, lon: 1 },
-      arrival: { scheduled: '2025-06-20T12:00:00Z' },
-    },
-  ],
-  vehicle: {
-    id: 'vehicle1',
-    gps: {
-      latitude: 1,
-      longitude: 1,
-      last_updated: '2025-06-20T12:00:00Z',
-    },
+const places = [makePlace(13, 'Dundee'), makePlace(42, 'Edinburgh'), makePlace(80, 'Glasgow')];
+
+const tripOne = makeTrip(
+  [makeStop(1, 'Perth Road', -20, { actual: new Date().toISOString() }), makeStop(2, 'Forth Bridge', 20)],
+  {
+    latitude: 56.1,
+    longitude: -3.1,
+    heading: 90,
   },
-};
+);
+const tripTwo = makeTrip([makeStop(3, 'Falkirk', 15), makeStop(4, 'Stirling', 40)], {
+  latitude: 56.0,
+  longitude: -3.8,
+});
+
+const twoBuses = () =>
+  mockApi({
+    places,
+    quotes: [makeQuote('one', -60), makeQuote('two', -30)],
+    trips: { one: tripOne, two: tripTwo },
+  });
 
 describe('TripPage (integration)', () => {
-  afterEach(() => {
-    jest.resetAllMocks();
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  test('renders trip page with live data', async () => {
-    global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    (global.fetch as jest.MockedFunction<typeof fetch>)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockQuotesResponse,
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockTripResponse,
-      } as Response);
-
+  test('shows the buses running now and the stops of the first', async () => {
+    twoBuses();
     render(<TripPage />);
 
-    expect(screen.getByText(/loading trip/i)).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toMatch(/loading trips/i);
 
-    await waitFor(() => {
-      expect(screen.getByText(/first stop/i)).toBeTruthy();
+    expect(await screen.findByText('Forth Bridge')).toBeTruthy();
+    expect(screen.queryByText('Falkirk', { selector: 'div' })).toBeNull();
+    expect(screen.getAllByRole('button', { name: /^Bus [12]/ })).toHaveLength(4); // two on the map, two in the list
+  });
+
+  test('puts every running bus on the map', async () => {
+    twoBuses();
+    render(<TripPage />);
+
+    await screen.findByText('Forth Bridge');
+
+    const map = screen.getByRole('region', { name: /live map/i });
+    expect(within(map).getAllByRole('button', { name: /^Bus 1,/ })).toHaveLength(1);
+    expect(within(map).getAllByRole('button', { name: /^Bus 2,/ })).toHaveLength(1);
+  });
+
+  test('shows another bus’s stops when it is chosen', async () => {
+    twoBuses();
+    render(<TripPage />);
+    await screen.findByText('Forth Bridge');
+
+    const list = screen.getByRole('list', { name: /buses on this route/i });
+    fireEvent.click(within(list).getByRole('button', { name: /Bus 2/ }));
+
+    expect(await screen.findByText('Falkirk', { selector: 'div' })).toBeTruthy();
+    expect(screen.queryByText('Forth Bridge', { selector: 'div' })).toBeNull();
+    expect(within(list).getByRole('button', { name: /Bus 2/ }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('follows a bus when its marker on the map is clicked', async () => {
+    twoBuses();
+    render(<TripPage />);
+    await screen.findByText('Forth Bridge');
+
+    const map = screen.getByRole('region', { name: /live map/i });
+    fireEvent.click(within(map).getByRole('button', { name: /^Bus 2,/ }));
+
+    expect(await screen.findByText('Falkirk', { selector: 'div' })).toBeTruthy();
+  });
+
+  test('shows no bus selector when only one bus is running', async () => {
+    mockApi({ places, quotes: [makeQuote('one', -60)], trips: { one: tripOne } });
+    render(<TripPage />);
+
+    await screen.findByText('Forth Bridge');
+
+    expect(screen.queryByRole('list', { name: /buses on this route/i })).toBeNull();
+  });
+
+  test('says so when the bus shown has not left yet', async () => {
+    mockApi({ places, quotes: [makeQuote('soon', 30)], trips: { soon: tripOne } });
+    render(<TripPage />);
+
+    expect(await screen.findByText(/no bus is running right now/i)).toBeTruthy();
+    expect(screen.getByText('Forth Bridge')).toBeTruthy();
+  });
+
+  test('names the route in the header, using the place names', async () => {
+    twoBuses();
+    render(<TripPage />);
+
+    expect(await screen.findByText('Dundee → Edinburgh')).toBeTruthy();
+  });
+
+  describe('choosing a route', () => {
+    test('opens the route in the address', async () => {
+      window.history.replaceState(null, '', '/?from=80&to=13');
+      const fetchMock = twoBuses();
+      render(<TripPage />);
+
+      expect(await screen.findByText('Glasgow → Dundee')).toBeTruthy();
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('origin=80&destination=13'));
     });
 
-    // Optionally verify elements like:
-    expect(screen.getByText(/first stop/i)).toBeTruthy();
+    test('loads the buses for a newly chosen destination and updates the address', async () => {
+      const fetchMock = twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      selectOption(screen.getByLabelText('To'), 'Glasgow');
+
+      await waitFor(() =>
+        expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('origin=13&destination=80')),
+      );
+      expect(window.location.search).toBe('?from=13&to=80');
+      expect(await screen.findByText('Dundee → Glasgow')).toBeTruthy();
+    });
+
+    test('swaps the ends of the route', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      fireEvent.click(screen.getByRole('button', { name: /swap/i }));
+
+      expect(await screen.findByText('Edinburgh → Dundee')).toBeTruthy();
+      expect(window.location.search).toBe('?from=42&to=13');
+    });
+
+    test('swaps instead of allowing one place at both ends', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      selectOption(screen.getByLabelText('From'), 'Edinburgh');
+
+      expect(await screen.findByText('Edinburgh → Dundee')).toBeTruthy();
+    });
+
+    test('goes back to following the first bus after the route changes', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+      const list = screen.getByRole('list', { name: /buses on this route/i });
+      fireEvent.click(within(list).getByRole('button', { name: /Bus 2/ }));
+      await screen.findByText('Falkirk', { selector: 'div' });
+
+      selectOption(screen.getByLabelText('To'), 'Glasgow');
+
+      expect(await screen.findByText('Forth Bridge', { selector: 'div' })).toBeTruthy();
+    });
+
+    test('still shows the buses when the list of places cannot be loaded', async () => {
+      const fetchMock = twoBuses();
+      const original = fetchMock.getMockImplementation()!;
+      fetchMock.mockImplementation((input) =>
+        String(input).includes('/locations/') ? Promise.reject(new Error('offline')) : original(input),
+      );
+      render(<TripPage />);
+
+      expect(await screen.findByText('Forth Bridge')).toBeTruthy();
+      expect(screen.queryByRole('form', { name: /choose a route/i })).toBeNull();
+    });
   });
 
-  test('renders error message if trip fetch fails', async () => {
-    global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+  describe('when there is nothing to show', () => {
+    test('says so when no bus runs on the route', async () => {
+      mockApi({ places, quotes: [] });
+      render(<TripPage />);
 
-    (global.fetch as jest.MockedFunction<typeof fetch>)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockQuotesResponse,
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: false,
-      } as Response);
+      expect(await screen.findByText(/no buses run on this route/i)).toBeTruthy();
+    });
 
-    render(<TripPage />);
+    test('renders an error message if the trips cannot be fetched', async () => {
+      mockApi({ places, failQuotes: true });
+      render(<TripPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/something went wrong/i)).toBeTruthy();
+      expect((await screen.findByRole('alert')).textContent).toMatch(/something went wrong/i);
+    });
+
+    test('keeps the route picker so another route can be tried', async () => {
+      mockApi({ places, failQuotes: true });
+      render(<TripPage />);
+      await screen.findByRole('alert');
+
+      expect(screen.getByLabelText('From')).toBeTruthy();
     });
   });
 
   describe('accessibility', () => {
-    const stubFetch = (tripResponse: unknown, tripOk = true) => {
-      global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
-      (global.fetch as jest.MockedFunction<typeof fetch>)
-        .mockResolvedValueOnce({ ok: true, json: async () => mockQuotesResponse } as Response)
-        .mockResolvedValueOnce({ ok: tripOk, json: async () => tripResponse } as Response);
-    };
+    test('has one main landmark while loading, once loaded and on failure', async () => {
+      twoBuses();
+      const { unmount } = render(<TripPage />);
+      expect(screen.getAllByRole('main')).toHaveLength(1);
+      await screen.findByText('Forth Bridge');
+      expect(screen.getAllByRole('main')).toHaveLength(1);
+      unmount();
 
-    test('has a main landmark and announces loading as a status', async () => {
-      stubFetch(mockTripResponse);
+      mockApi({ places, failQuotes: true });
       render(<TripPage />);
-
-      expect(screen.getByRole('main')).toBeTruthy();
-      expect(screen.getByRole('status').textContent).toMatch(/loading trip/i);
-
-      await waitFor(() => expect(screen.getByText(/first stop/i)).toBeTruthy());
-    });
-
-    test('keeps the main landmark once the trip has loaded', async () => {
-      stubFetch(mockTripResponse);
-      render(<TripPage />);
-
-      await waitFor(() => expect(screen.getByText(/first stop/i)).toBeTruthy());
-
-      expect(screen.getByRole('main')).toBeTruthy();
+      await screen.findByRole('alert');
+      expect(screen.getAllByRole('main')).toHaveLength(1);
     });
 
     test('announces a failure as an alert inside the main landmark', async () => {
-      stubFetch({}, false);
+      mockApi({ failQuotes: true });
       render(<TripPage />);
 
       const alert = await screen.findByRole('alert');
 
-      expect(alert.textContent).toMatch(/something went wrong/i);
       expect(screen.getByRole('main').contains(alert)).toBe(true);
     });
 
-    test('gives the map markers accessible names', async () => {
-      stubFetch(mockTripResponse);
+    test('gives the buses on the map accessible names', async () => {
+      twoBuses();
       render(<TripPage />);
 
-      await waitFor(() =>
-        expect(screen.getAllByRole('button', { name: 'First Stop' }).length).toBeGreaterThan(0),
-      );
+      await screen.findByText('Forth Bridge');
 
-      expect(screen.getAllByRole('button', { name: 'Bus position' }).length).toBeGreaterThan(0);
+      const map = screen.getByRole('region', { name: /live map/i });
+      expect(within(map).getByRole('button', { name: /^Bus 1, \d\d:\d\d departure$/ })).toBeTruthy();
+      expect(within(map).getByRole('button', { name: /^Bus 2, \d\d:\d\d departure$/ })).toBeTruthy();
+    });
+
+    test('keeps the stop markers out of the tab order, so the stop list is the keyboard route', async () => {
+      twoBuses();
+      render(<TripPage />);
+
+      await screen.findByText('Forth Bridge');
+
+      const map = screen.getByRole('region', { name: /live map/i });
+      const stopMarker = map.querySelector('.stop-dot-icon[title="Forth Bridge"]');
+      expect(stopMarker).not.toBeNull();
+      expect(stopMarker?.getAttribute('tabindex')).toBeNull();
+      expect(within(map).queryByRole('button', { name: 'Forth Bridge' })).toBeNull();
+    });
+
+    test('labels the route pickers and the swap button', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      expect(screen.getByLabelText('From')).toBeTruthy();
+      expect(screen.getByLabelText('To')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Swap from and to' })).toBeTruthy();
     });
   });
 });

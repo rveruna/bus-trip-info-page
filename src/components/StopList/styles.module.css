@@ -31,7 +31,7 @@
 }
 
 .next {
-  color: #999;
+  color: #595959;
 }
 
 .name {
@@ -50,4 +50,14 @@
 .delay {
   margin-left: 6px;
   font-size: 0.75rem;
+}
+
+/* Stops already passed: a darker dot and plain text. Fading them with opacity fails the contrast check. */
+.passed .dot {
+  background-color: #595959;
+  box-shadow: 0 0 0 1px #595959;
+}
+
+.passed .name {
+  color: #595959;
 }

@@ -54,3 +54,34 @@ export interface Vehicle {
     last_updated: string;
   };
 }
+
+export interface Place {
+  id: number;
+  name: string;
+  region_name?: string;
+  has_future_activity: boolean;
+}
+
+export interface Quote {
+  legs?:
+    | {
+        trip_uid?: string;
+        departure?: { scheduled?: string };
+        arrival?: { scheduled?: string };
+      }[]
+    | null;
+}
+
+/** A trip the page can show: where it is in its journey, its stops and where its bus is. */
+export interface TripRef {
+  uid: string;
+  departure: string;
+  arrival: string;
+  /** False when no bus is running yet and this is just the next departure. */
+  inProgress: boolean;
+}
+
+export interface LiveTrip extends TripRef {
+  route: LocationTime[];
+  gps: Vehicle['gps'] | null;
+}

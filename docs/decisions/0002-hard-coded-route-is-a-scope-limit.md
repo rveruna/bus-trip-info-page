@@ -1,6 +1,6 @@
 # 0002: The hard-coded route is a deliberate scope limit
 
-Status: accepted
+Status: superseded by [0004](0004-follow-every-running-bus-on-a-chosen-route.md)
 
 ## Context
 

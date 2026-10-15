@@ -49,4 +49,37 @@ describe('StopList', () => {
     render(<StopList route={mockRoute} />);
     expect(screen.getByText(/\(\+5 min\)/)).toBeTruthy();
   });
+
+  it('dims the stops the bus has already passed', () => {
+    render(<StopList route={mockRoute} />);
+
+    expect(screen.getByText('Stop A').closest('li')?.className).toMatch(/passed/);
+    expect(screen.getByText('Stop B').closest('li')?.className).not.toMatch(/passed/);
+  });
+
+  it('shows when the bus really reached a stop, not when it was expected to', () => {
+    const route: Trip['route'] = [
+      {
+        id: 1,
+        location: { name: 'Reached' },
+        arrival: {
+          scheduled: new Date(Date.now() - 20 * 60000).toISOString(),
+          estimated: new Date(Date.now() - 18 * 60000).toISOString(),
+          actual: new Date(Date.now() - 15 * 60000).toISOString(),
+        } as Trip['route'][number]['arrival'],
+        skipped: false,
+      },
+      {
+        id: 2,
+        location: { name: 'Ahead' },
+        arrival: {
+          scheduled: new Date(Date.now() + 10 * 60000).toISOString(),
+        } as Trip['route'][number]['arrival'],
+        skipped: false,
+      },
+    ];
+    render(<StopList route={route} />);
+
+    expect(screen.getByText(/\(\+5 min\)/)).toBeTruthy(); // 5 min after schedule by the actual time (not +2 by the estimate)
+  });
 });
