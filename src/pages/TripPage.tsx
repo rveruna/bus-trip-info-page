@@ -1,7 +1,7 @@
-import { useTripData } from "../hooks/useTripData";
-import { StopList } from "../components/StopList";
-import { TripHeader } from "../components/TripHeader";
-import { LiveMap } from "../components/LiveMap";
+import { useTripData } from '../hooks/useTripData';
+import { StopList } from '../components/StopList';
+import { TripHeader } from '../components/TripHeader';
+import { LiveMap } from '../components/LiveMap';
 
 export const TripPage = () => {
   const { trip, gps, loading, error } = useTripData();
@@ -13,11 +13,11 @@ export const TripPage = () => {
     <div>
       <TripHeader lastUpdated={gps?.last_updated} />
 
-      <section style={{ height: "240px" }}>
+      <section style={{ height: '240px' }}>
         <LiveMap gps={gps} route={trip.route} />
       </section>
 
-      <section style={{ padding: "1rem" }}>
+      <section style={{ padding: '1rem' }}>
         <StopList route={trip.route} />
       </section>
     </div>

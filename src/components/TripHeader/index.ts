@@ -1,1 +1,1 @@
-export { TripHeader } from "./TripHeader";
+export { TripHeader } from './TripHeader';

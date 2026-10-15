@@ -1,12 +1,12 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { TripPage } from "../TripPage";
+import { render, screen, waitFor } from '@testing-library/react';
+import { TripPage } from '../TripPage';
 
 const mockQuotesResponse = {
   quotes: [
     {
       legs: [
         {
-          trip_uid: "abc123",
+          trip_uid: 'abc123',
           departure: { scheduled: new Date(Date.now() + 100000).toISOString() },
         },
       ],
@@ -17,27 +17,27 @@ const mockQuotesResponse = {
 const mockTripResponse = {
   route: [
     {
-      id: "stop1",
-      location: { name: "First Stop", lat: 1, lon: 1 },
-      arrival: { scheduled: "2025-06-20T12:00:00Z" },
+      id: 'stop1',
+      location: { name: 'First Stop', lat: 1, lon: 1 },
+      arrival: { scheduled: '2025-06-20T12:00:00Z' },
     },
   ],
   vehicle: {
-    id: "vehicle1",
+    id: 'vehicle1',
     gps: {
       latitude: 1,
       longitude: 1,
-      last_updated: "2025-06-20T12:00:00Z",
+      last_updated: '2025-06-20T12:00:00Z',
     },
   },
 };
 
-describe("TripPage (integration)", () => {
+describe('TripPage (integration)', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  test("renders trip page with live data", async () => {
+  test('renders trip page with live data', async () => {
     global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
     (global.fetch as jest.MockedFunction<typeof fetch>)
@@ -62,7 +62,7 @@ describe("TripPage (integration)", () => {
     expect(screen.getByText(/first stop/i)).toBeTruthy();
   });
 
-  test("renders error message if trip fetch fails", async () => {
+  test('renders error message if trip fetch fails', async () => {
     global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
     (global.fetch as jest.MockedFunction<typeof fetch>)

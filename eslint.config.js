@@ -25,7 +25,10 @@ export default tseslint.config(
       // Off in the recommended preset. It is what catches icon-only buttons with no accessible name.
       'jsx-a11y/control-has-associated-label': [
         'error',
-        { ignoreElements: ['audio', 'canvas', 'embed', 'input', 'textarea', 'tr', 'td', 'th', 'video'], includeRoles: ['alert', 'dialog'] },
+        {
+          ignoreElements: ['audio', 'canvas', 'embed', 'input', 'textarea', 'tr', 'td', 'th', 'video'],
+          includeRoles: ['alert', 'dialog'],
+        },
       ],
     },
   },

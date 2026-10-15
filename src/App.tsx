@@ -1,4 +1,4 @@
-import { TripPage } from "./pages/TripPage";
+import { TripPage } from './pages/TripPage';
 
 function App() {
   return <TripPage />;
