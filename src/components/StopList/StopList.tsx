@@ -1,36 +1,35 @@
-import type { Trip } from '../../types/trip';
 import { formatTime } from '../../utils/formatTime';
+import { findNextStopIndex, type StopTimes } from '../../utils/stops';
 import styles from './styles.module.css';
 
 type Props = {
-  route: Trip['route'];
+  route: (StopTimes & { id: number; location: { name: string } })[];
 };
 
 export const StopList = ({ route }: Props) => {
   const now = new Date();
-
-  const findNextStopIndex = () =>
-    route.findIndex((stop) => {
-      const est = new Date(stop.arrival.estimated ?? stop.arrival.scheduled);
-      return est > now && !stop.skipped;
-    });
-
-  const nextIndex = findNextStopIndex();
+  const nextIndex = findNextStopIndex(route, now);
 
   return (
     <ul className={styles.list}>
       {route.map((stop, i) => {
         const isNext = i === nextIndex;
         const isLast = i === route.length - 1;
+        const hasPassed = nextIndex === -1 || i < nextIndex;
 
         const scheduled = new Date(stop.arrival.scheduled);
-        const estimated = stop.arrival.estimated ? new Date(stop.arrival.estimated) : null;
+        const expected = stop.arrival.actual ?? stop.arrival.estimated;
+        const estimated = expected ? new Date(expected) : null;
 
         const isDelayed = estimated ? estimated > scheduled : false;
         const delayMinutes = estimated ? Math.round((+estimated - +scheduled) / 60000) : 0;
 
         return (
-          <li key={stop.id} className={styles.item} style={{ paddingBottom: isLast ? 0 : '2rem' }}>
+          <li
+            key={stop.id}
+            className={`${styles.item} ${hasPassed ? styles.passed : ''}`}
+            style={{ paddingBottom: isLast ? 0 : '2rem' }}
+          >
             {!isLast && <span className={styles.line} />}
             <span className={styles.dot} />
 

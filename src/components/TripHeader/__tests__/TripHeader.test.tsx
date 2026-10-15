@@ -20,4 +20,9 @@ describe('TripHeader', () => {
     const { queryByText } = render(<TripHeader />);
     expect(queryByText(/last updated/i)).toBeNull();
   });
+
+  it('shows the journey being followed when provided', () => {
+    const { getByText } = render(<TripHeader route="Dundee → Edinburgh" />);
+    expect(getByText('Dundee → Edinburgh')).toBeTruthy();
+  });
 });
