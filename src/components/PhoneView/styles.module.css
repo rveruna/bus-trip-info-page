@@ -1,0 +1,54 @@
+.stage {
+  --screen-width: 390px;
+  --bezel: 14px;
+  --bezel-top: 30px;
+  --screen-height: min(800px, calc(100vh - 11rem));
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: #e8ebee;
+}
+
+.heading {
+  margin: 0.5rem 0;
+  font-size: 1.25rem;
+}
+
+.close {
+  margin-bottom: 1.25rem;
+}
+
+.device {
+  position: relative;
+  padding: var(--bezel-top) var(--bezel) var(--bezel);
+  border-radius: 52px;
+  background: #15171a;
+  box-shadow:
+    0 0 0 2px #3a3d42,
+    0 24px 60px rgb(0 0 0 / 0.35);
+}
+
+.speaker {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 72px;
+  height: 6px;
+  margin-left: -36px;
+  border-radius: 3px;
+  background: #3a3d42;
+}
+
+.screen {
+  display: block;
+  width: var(--screen-width);
+  height: var(--screen-height);
+  border: 0;
+  border-radius: 36px;
+  background: #f9f9f9;
+}
