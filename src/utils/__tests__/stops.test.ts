@@ -1,4 +1,4 @@
-import { describeDelay, findNextStopIndex, getDelayMinutes } from '../stops';
+import { describeDelay, findNextStopIndex, getDelayMinutes, hasFinished } from '../stops';
 import { makeStop } from '../../test/mockApi';
 
 const now = new Date();
@@ -43,5 +43,20 @@ describe('getDelayMinutes and describeDelay', () => {
   it('is null when the trip has no stop left', () => {
     expect(getDelayMinutes([makeStop(1, 'A', -20)], now)).toBeNull();
     expect(describeDelay(null)).toBe('finished');
+  });
+});
+
+describe('hasFinished', () => {
+  it('is true once the bus has reached every stop', () => {
+    const route = [makeStop(1, 'A', -20, { actual: at(-20) }), makeStop(2, 'B', -5, { actual: at(-5) })];
+    expect(hasFinished(route, now)).toBe(true);
+  });
+
+  it('is false while a stop is still ahead', () => {
+    expect(hasFinished([makeStop(1, 'A', -20, { actual: at(-20) }), makeStop(2, 'B', 10)], now)).toBe(false);
+  });
+
+  it('is false for a trip with no stops, so it is not hidden by mistake', () => {
+    expect(hasFinished([], now)).toBe(false);
   });
 });

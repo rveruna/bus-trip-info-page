@@ -27,12 +27,14 @@ export const makeStop = (
     skipped: false,
   }) as LocationTime;
 
+/** A trip whose bus last reported `seenMinutesAgo` minutes ago (default: just now). */
 export const makeTrip = (
   stops: LocationTime[],
   gps?: { latitude: number; longitude: number; heading?: number },
+  seenMinutesAgo = 0,
 ) => ({
   route: stops,
-  vehicle: gps ? { gps: { ...gps, last_updated: '2025-06-20T12:00:00Z' } } : undefined,
+  vehicle: gps ? { gps: { ...gps, last_updated: minutes(-seenMinutesAgo) } } : undefined,
 });
 
 export const makePlace = (id: number, name: string, has_future_activity = true): Place => ({
