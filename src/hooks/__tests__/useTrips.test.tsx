@@ -261,4 +261,40 @@ describe('useTrips', () => {
       expect(result.current).toMatchObject({ error: true, empty: false });
     });
   });
+
+  test('keeps only the stops of the chosen journey on a trip that runs further', async () => {
+    const through = makeTrip(
+      [
+        makeStop(1, 'Aberdeen', -90, { actual: new Date().toISOString() }),
+        makeStop(2, 'Dundee', -10),
+        makeStop(3, 'Perth', 20),
+        makeStop(4, 'Edinburgh', 80),
+      ],
+      gps,
+    );
+    mockApi({ quotes: [makeQuote('through', -10, 90, { from: 2, to: 4 })], trips: { through } });
+
+    const { result } = renderHook(() => useTrips(13, 42));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.trips[0].route.map((stop) => stop.location.name)).toEqual([
+      'Dundee',
+      'Perth',
+      'Edinburgh',
+    ]);
+  });
+
+  test('counts a bus as finished once it reaches the journey’s last stop, even if its trip goes on', async () => {
+    const past = { actual: new Date().toISOString() };
+    const through = makeTrip(
+      [makeStop(1, 'Dundee', -60, past), makeStop(2, 'Edinburgh', -5, past), makeStop(3, 'Glasgow', 60)],
+      gps,
+    );
+    mockApi({ quotes: [makeQuote('through', -60, 70, { from: 1, to: 2 })], trips: { through } });
+
+    const { result } = renderHook(() => useTrips(13, 42));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current).toMatchObject({ trips: [], empty: true });
+  });
 });

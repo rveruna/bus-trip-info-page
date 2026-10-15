@@ -70,3 +70,11 @@ describe('nextDeparture', () => {
     expect(nextDeparture([], now)).toBeUndefined();
   });
 });
+
+describe('where the journey gets on and off', () => {
+  it('is carried from the quote', () => {
+    const [ref] = selectTrips([makeQuote('through', -30, 120, { from: 218, to: 175 })], now);
+
+    expect(ref).toMatchObject({ originStopId: 218, destinationStopId: 175 });
+  });
+});

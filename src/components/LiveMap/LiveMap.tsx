@@ -41,6 +41,8 @@ export const LiveMap = ({ trips, selectedUid, onSelect }: Props) => {
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
+        // On high-density screens, use tiles from one zoom level closer so the map is sharp, not blurred.
+        detectRetina
       />
       <FitRoute coords={selectedCoords} uid={selected.uid} />
 
