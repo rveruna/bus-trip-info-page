@@ -3,12 +3,15 @@ import styles from './styles.module.css';
 
 interface TripHeaderProps {
   lastUpdated?: string;
+  /** The journey being followed, for example "Dundee → Edinburgh". */
+  route?: string;
 }
 
-export const TripHeader = ({ lastUpdated }: TripHeaderProps) => {
+export const TripHeader = ({ lastUpdated, route }: TripHeaderProps) => {
   return (
     <header className={styles.container}>
       <h1 className={styles.title}>Trip Info</h1>
+      {route && <p className={styles.route}>{route}</p>}
       {lastUpdated && <p className={styles.updated}>Last updated: {formatTime(lastUpdated)}</p>}
     </header>
   );
