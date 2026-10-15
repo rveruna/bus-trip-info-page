@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Bus">
+  <rect x="5" y="4" width="22" height="20" rx="4" fill="#007bff"/>
+  <rect x="8" y="8" width="16" height="7" rx="1.5" fill="#fff"/>
+  <circle cx="11" cy="20" r="1.8" fill="#fff"/>
+  <circle cx="21" cy="20" r="1.8" fill="#fff"/>
+  <rect x="9" y="25" width="4" height="3" rx="1" fill="#007bff"/>
+  <rect x="19" y="25" width="4" height="3" rx="1" fill="#007bff"/>
+</svg>
