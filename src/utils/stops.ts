@@ -11,6 +11,10 @@ export function findNextStopIndex(route: StopTimes[], now: Date): number {
   });
 }
 
+/** True when the bus has reached every stop on its route. */
+export const hasFinished = (route: StopTimes[], now: Date) =>
+  route.length > 0 && findNextStopIndex(route, now) === -1;
+
 /** Minutes the bus is running late at its next stop (negative when early), or null with no next stop. */
 export function getDelayMinutes(route: StopTimes[], now: Date): number | null {
   const next = route[findNextStopIndex(route, now)];

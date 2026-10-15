@@ -6,6 +6,7 @@ import { RoutePicker } from '../components/RoutePicker';
 import { StopList } from '../components/StopList';
 import { TripHeader } from '../components/TripHeader';
 import { TripSelector } from '../components/TripSelector';
+import { isStale } from '../utils/gps';
 import type { Route } from '../utils/routeParams';
 
 type Props = {
@@ -25,7 +26,11 @@ export const TripView = ({ route, onRouteChange, onViewOnPhone }: Props) => {
   useEffect(() => setFollowedUid(null), [route]);
 
   const nameOf = (id: number) => places.find((place) => place.id === id)?.name ?? `Stop ${id}`;
-  const selected = trips.find((trip) => trip.uid === followedUid) ?? trips[0];
+  // Without a choice, follow a bus that is still reporting its position.
+  const selected =
+    trips.find((trip) => trip.uid === followedUid) ??
+    trips.find((trip) => !isStale(trip.gps, new Date())) ??
+    trips[0];
 
   // Choosing the other end as this end swaps the two, because a route cannot start and end in one place.
   const setOrigin = (origin: number) =>
@@ -66,7 +71,7 @@ export const TripView = ({ route, onRouteChange, onViewOnPhone }: Props) => {
       )}
       {!loading && empty && (
         <p role="status" style={{ padding: '1rem' }}>
-          No buses run on this route today or tomorrow.
+          No bus is running on this route right now.
         </p>
       )}
 
