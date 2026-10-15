@@ -1,8 +1,8 @@
-import L from "leaflet";
+import L from 'leaflet';
 
 export const createBusIcon = (heading: number = 0) =>
   L.divIcon({
-    className: "bus-icon",
+    className: 'bus-icon',
     iconSize: [20, 28],
     iconAnchor: [10, 14],
     html: `
