@@ -6,11 +6,23 @@ import { LiveMap } from '../components/LiveMap';
 export const TripPage = () => {
   const { trip, gps, loading, error } = useTripData();
 
-  if (loading) return <p>Loading trip...</p>;
-  if (error || !trip) return <p>Something went wrong.</p>;
+  if (loading) {
+    return (
+      <main>
+        <p role="status">Loading trip...</p>
+      </main>
+    );
+  }
+  if (error || !trip) {
+    return (
+      <main>
+        <p role="alert">Something went wrong.</p>
+      </main>
+    );
+  }
 
   return (
-    <div>
+    <main>
       <TripHeader lastUpdated={gps?.last_updated} />
 
       <section style={{ height: '240px' }}>
@@ -20,6 +32,6 @@ export const TripPage = () => {
       <section style={{ padding: '1rem' }}>
         <StopList route={trip.route} />
       </section>
-    </div>
+    </main>
   );
 };

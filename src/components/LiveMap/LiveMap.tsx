@@ -26,6 +26,7 @@ export const LiveMap = ({ gps, route }: Props) => {
         <Marker
           position={[gps.latitude, gps.longitude]}
           icon={createBusIcon(gps.heading)}
+          title="Bus position"
           zIndexOffset={1000}
         >
           <Popup>Bus is here</Popup>
@@ -33,7 +34,12 @@ export const LiveMap = ({ gps, route }: Props) => {
       )}
 
       {route.map((stop) => (
-        <Marker key={stop.id} position={[stop.location.lat, stop.location.lon]} icon={createStopDotIcon()}>
+        <Marker
+          key={stop.id}
+          position={[stop.location.lat, stop.location.lon]}
+          icon={createStopDotIcon()}
+          title={stop.location.name}
+        >
           <Popup>{stop.location.name}</Popup>
         </Marker>
       ))}
