@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchQuotes, fetchTrip } from '@/api/ember';
 import { nextDeparture, selectTrips } from '@/utils/selectTrips';
-import { hasFinished } from '@/utils/stops';
+import { hasFinished, journeyStops } from '@/utils/stops';
 import type { LiveTrip, TripRef } from '@/types/trip';
 
 export const REFRESH_MS = 15000;
@@ -29,7 +29,13 @@ export function useTrips(origin: number, destination: number): State {
       const results = await Promise.allSettled(refs.map((ref) => fetchTrip(ref.uid)));
       return results.flatMap((result, i) =>
         result.status === 'fulfilled'
-          ? [{ ...refs[i], route: result.value.route, gps: result.value.vehicle?.gps ?? null }]
+          ? [
+              {
+                ...refs[i],
+                route: journeyStops(result.value.route, refs[i].originStopId, refs[i].destinationStopId),
+                gps: result.value.vehicle?.gps ?? null,
+              },
+            ]
           : [],
       );
     };
