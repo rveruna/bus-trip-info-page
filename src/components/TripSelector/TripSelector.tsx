@@ -1,6 +1,7 @@
 import type { LiveTrip } from '@/types/trip';
 import { busColour } from '../../utils/busColours';
 import { formatTime } from '../../utils/formatTime';
+import { isStale } from '../../utils/gps';
 import { describeDelay, getDelayMinutes } from '../../utils/stops';
 import styles from './styles.module.css';
 
@@ -16,7 +17,13 @@ export const TripSelector = ({ trips, selectedUid, onSelect }: Props) => {
   return (
     <ul className={styles.list} aria-label="Buses on this route">
       {trips.map((trip, i) => {
-        const status = trip.inProgress ? describeDelay(getDelayMinutes(trip.route, now)) : 'not yet running';
+        const status = !trip.inProgress
+          ? 'not yet running'
+          : isStale(trip.gps, now)
+            ? trip.gps
+              ? `no position since ${formatTime(trip.gps.last_updated)}`
+              : 'no position'
+            : describeDelay(getDelayMinutes(trip.route, now));
         return (
           <li key={trip.uid}>
             <button
