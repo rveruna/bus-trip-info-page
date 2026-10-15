@@ -1,4 +1,4 @@
-import { selectTrips, MAX_BUSES } from '../selectTrips';
+import { selectTrips, nextDeparture, MAX_BUSES } from '../selectTrips';
 import { makeQuote } from '../../test/mockApi';
 
 const now = new Date();
@@ -52,5 +52,21 @@ describe('selectTrips', () => {
     const quotes = Array.from({ length: MAX_BUSES + 4 }, (_, i) => makeQuote(`trip-${i}`, -10 - i));
 
     expect(selectTrips(quotes, now)).toHaveLength(MAX_BUSES);
+  });
+});
+
+describe('nextDeparture', () => {
+  it('is the earliest trip that has not left yet', () => {
+    const next = nextDeparture(
+      [makeQuote('far', 300), makeQuote('soon', 20), makeQuote('running', -30)],
+      now,
+    );
+
+    expect(next).toMatchObject({ uid: 'soon', inProgress: false });
+  });
+
+  it('is nothing when every trip has left', () => {
+    expect(nextDeparture([makeQuote('running', -30)], now)).toBeUndefined();
+    expect(nextDeparture([], now)).toBeUndefined();
   });
 });
