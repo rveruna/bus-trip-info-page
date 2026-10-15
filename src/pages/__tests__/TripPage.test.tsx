@@ -181,6 +181,61 @@ describe('TripPage (integration)', () => {
     });
   });
 
+  describe('phone view', () => {
+    test('is offered on the full screen page', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      expect(screen.getByRole('button', { name: 'View on a phone' })).toBeTruthy();
+    });
+
+    test('swaps the page for a framed copy of itself, and back', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      fireEvent.click(screen.getByRole('button', { name: 'View on a phone' }));
+
+      expect(screen.getByTitle(/shown at phone width/i)).toBeTruthy();
+      // The full page has gone, which also stops its 15-second refresh, so the frame is the only live copy.
+      expect(screen.queryByRole('region', { name: /live map/i })).toBeNull();
+
+      fireEvent.click(screen.getByRole('button', { name: /back to full screen/i }));
+
+      expect(await screen.findByRole('region', { name: /live map/i })).toBeTruthy();
+      expect(screen.queryByTitle(/shown at phone width/i)).toBeNull();
+    });
+
+    test('opens on the route that was chosen', async () => {
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+      selectOption(screen.getByLabelText('To'), 'Glasgow');
+      await screen.findByText('Dundee → Glasgow');
+
+      fireEvent.click(screen.getByRole('button', { name: 'View on a phone' }));
+
+      expect(screen.getByTitle(/shown at phone width/i).getAttribute('src')).toMatch(
+        /\?from=13&to=80&embed=1$/,
+      );
+    });
+
+    test('is not offered inside the phone view, and the address keeps saying so', async () => {
+      window.history.replaceState(null, '', '/?from=13&to=42&embed=1');
+      twoBuses();
+      render(<TripPage />);
+      await screen.findByText('Forth Bridge');
+
+      expect(screen.queryByRole('button', { name: 'View on a phone' })).toBeNull();
+
+      selectOption(screen.getByLabelText('To'), 'Glasgow');
+      await screen.findByText('Dundee → Glasgow');
+
+      expect(window.location.search).toBe('?from=13&to=80&embed=1');
+    });
+  });
+
   describe('when there is nothing to show', () => {
     test('says so when no bus runs on the route', async () => {
       mockApi({ places, quotes: [] });
