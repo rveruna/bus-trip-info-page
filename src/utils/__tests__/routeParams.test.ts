@@ -1,4 +1,4 @@
-import { DEFAULT_DESTINATION, DEFAULT_ORIGIN, readRoute, routeSearch } from '../routeParams';
+import { DEFAULT_DESTINATION, DEFAULT_ORIGIN, isEmbedded, readRoute, routeSearch } from '../routeParams';
 
 describe('readRoute', () => {
   it('reads the route from the address', () => {
@@ -22,5 +22,18 @@ describe('readRoute', () => {
 
   it('round-trips through routeSearch', () => {
     expect(readRoute(routeSearch(80, 452))).toEqual({ origin: 80, destination: 452 });
+  });
+});
+
+describe('embedding', () => {
+  it('knows when the page is inside the phone view', () => {
+    expect(isEmbedded('?from=1&to=2&embed=1')).toBe(true);
+    expect(isEmbedded('?from=1&to=2')).toBe(false);
+    expect(isEmbedded('?embed=0')).toBe(false);
+  });
+
+  it('adds embed to the address only when asked', () => {
+    expect(routeSearch(13, 42)).toBe('?from=13&to=42');
+    expect(routeSearch(13, 42, true)).toBe('?from=13&to=42&embed=1');
   });
 });
