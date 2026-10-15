@@ -27,7 +27,7 @@ jobs:
       - run: yarn build
         env:
           VITE_BASE: /bus-trip-info-page/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
