@@ -5,6 +5,7 @@ import { busColour } from '../../utils/busColours';
 import { createStopDotIcon } from '../../utils/createStopDotIcon';
 import { createBusIcon } from '../../utils/createBusIcon';
 import { formatTime } from '../../utils/formatTime';
+import { isStale } from '../../utils/gps';
 import { AnimatedMarker } from './AnimatedMarker';
 
 type Props = {
@@ -29,6 +30,7 @@ const FitRoute = ({ coords, uid }: { coords: [number, number][]; uid: string }) 
 export const LiveMap = ({ trips, selectedUid, onSelect }: Props) => {
   const selected = trips.find((trip) => trip.uid === selectedUid) ?? trips[0];
   const selectedCoords = toCoords(selected);
+  const now = new Date();
 
   return (
     <MapContainer
@@ -73,7 +75,7 @@ export const LiveMap = ({ trips, selectedUid, onSelect }: Props) => {
       ))}
 
       {trips.map((trip, i) =>
-        trip.gps ? (
+        trip.gps && !isStale(trip.gps, now) ? (
           <AnimatedMarker
             key={trip.uid}
             position={[trip.gps.latitude, trip.gps.longitude]}
