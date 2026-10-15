@@ -23,6 +23,8 @@ function toRefs(quotes: Quote[], now: Date): TripRef[] {
       departure,
       arrival,
       inProgress: new Date(departure) <= now && now <= new Date(arrival),
+      originStopId: leg.origin?.id,
+      destinationStopId: leg.destination?.id,
     });
   }
   return refs;
